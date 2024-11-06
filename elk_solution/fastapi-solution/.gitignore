@@ -1,0 +1,14 @@
+data_science/models/
+__pycache__/
+
+# Environments
+.env
+venv/
+
+.idea
+frontend/node_modules/
+
+build
+dockerfiles/
+/storage.json
+/fs.log

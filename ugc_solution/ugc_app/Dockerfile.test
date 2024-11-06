@@ -1,0 +1,31 @@
+ARG PYTHON_VERSION
+
+# Укажите необходимую версию python
+FROM python:${PYTHON_VERSION}
+
+RUN apt-get update && apt-get -y install libpq-dev gcc g++ && \
+    apt-get install -y nmap ncat
+
+ENV PIP_DISABLE_PIP_VERSION_CHECK=on
+RUN pip install poetry
+
+# Выберите папку, в которой будут размещаться файлы проекта внутри контейнера
+WORKDIR /opt/ugc_app
+
+# Скопируйте в контейнер файлы, которые редко меняются
+COPY poetry.lock poetry.lock
+COPY pyproject.toml pyproject.toml
+COPY wait-for-db-and-run.sh wait-for-db-and-run.sh
+
+# Установите зависимости
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-interaction --no-dev
+
+# Скопируйте всё оставшееся. Для ускорения сборки образа эту команду стоит разместить ближе к концу файла.
+COPY . .
+
+RUN chmod +x wait-for-db-and-run.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["./wait-for-db-and-run.sh"]

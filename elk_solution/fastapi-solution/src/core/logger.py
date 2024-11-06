@@ -1,0 +1,76 @@
+import logging.config
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+LOG_FILE_PATH = os.path.join(BASE_DIR, "fs.log")
+
+LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+LOG_DEFAULT_HANDLERS = [
+    "console",
+    "file",
+]
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {"format": LOG_FORMAT},
+        "default": {
+            "()": "uvicorn.logging.DefaultFormatter",
+            "fmt": "%(levelprefix)s %(message)s",
+            "use_colors": None,
+        },
+        "access": {
+            "()": "uvicorn.logging.AccessFormatter",
+            "fmt": "%(levelprefix)s %(client_addr)s - "
+            "'%(request_line)s' %(status_code)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "formatter": "verbose",
+            "filename": LOG_FILE_PATH,
+        },
+        "default": {
+            "formatter": "default",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+        },
+        "access": {
+            "formatter": "access",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": LOG_DEFAULT_HANDLERS,
+            "level": "INFO",
+        },
+        "uvicorn.error": {
+            "handlers": ["file"],
+            "level": "INFO",
+        },
+        "uvicorn.access": {
+            "handlers": ["access", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+    "root": {
+        "level": "INFO",
+        "formatter": "verbose",
+        "handlers": LOG_DEFAULT_HANDLERS,
+    },
+}
+
+logging.config.dictConfig(LOGGING)
+
+logger = logging.getLogger("logger")
